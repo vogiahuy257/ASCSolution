@@ -15,4 +15,11 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.13" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ASC.Business\ASC.Business.csproj" />
+    <ProjectReference Include="..\ASC.DataAccess\ASC.DataAccess.csproj" />
+    <ProjectReference Include="..\ASC.Model\ASC.Model.csproj" />
+    <ProjectReference Include="..\ASC.Utilities\ASC.Utilities.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@_configurationSettings.Value.ApplicationTille</title>
+    <title>@_configurationSettings.Value.ApplicationTitle</title>
     @* <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" /> *@
     
     <!-- CSS  -->
@@ -24,6 +24,12 @@
     <script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
     <script src="~/js/materialize.js"></script>
     <script src="~/js/init.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var elems = document.querySelectorAll('.collapsible');
+            var instances = M.Collapsible.init(elems, options);
+          });
+    </script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

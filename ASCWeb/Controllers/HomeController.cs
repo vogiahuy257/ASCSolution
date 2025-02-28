@@ -20,7 +20,7 @@ namespace ASCWeb.Controllers
 
         public IActionResult Index()
         {
-            ViewBag.Title = _settings.Value.ApplicationTille;
+            ViewBag.Title = _settings.Value.ApplicationTitle;
             return View();
         }
 
