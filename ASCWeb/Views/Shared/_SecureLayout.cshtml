@@ -1,5 +1,11 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Http
+@using ASC.Utilities
+@using ASCWeb.Data
+@inject IHttpContextAccessor UserHttpContext
+@inject INavigationCacheOperations navigationCache
+@{
     Layout = "_MasterLayout";
+    var currentUser = UserHttpContext.HttpContext.User.GetCurrentUserDetails();
 }
     <!-- Header -->
     <header class="secureLayout">
@@ -17,12 +23,15 @@
 
     <!-- Side Navbar -->
     <ul id="nav-mobile" class="sidenav sidenav-fixed">
-        <div class="user-view">
-            <div class="background blue-grey lighten-1"></div>
-            <a href="#user"><img class="circle" src="~/images/male.png"></a>
-            <a href="#name"><span class="white-text name">John Doe</span></a>
-            <a href="#email"><span class="white-text email">jdandtunk@gmail.com</span></a>
-        </div>
+        <li> 
+            <div class="user-view">
+                <div class="background blue-grey lighten-1"></div>
+                <a href="#user"><img class="circle" src="~/images/male.png"></a>
+                <a href="#name"><span class="white-text name">@currentUser.Name</span></a>
+                <a href="#email"><span class="white-text email">@currentUser.Email</span></a>
+            </div>
+        </li>
+        @await Component.InvokeAsync("ASCWeb.Navigation.LeftNavigation", await navigationCache.GetNavigationCacheAsync())
         <li>
             <a class="collapsible-header" href="#"><i class="material-icons">dashboard</i> Dashboard</a>
         </li>
@@ -55,6 +64,7 @@
             </div>
         </div>
     </main>
+
 
     <!-- Footer -->
     <footer class="page-footer blue-grey lighten-1 secureLayout">
@@ -92,3 +102,28 @@
         </div>
     </footer>
 
+<form class="hide" method="post" id="logout_form" asp-area="Identity" asp-page="/Account/Logout">
+    <input type="submit" value="Logout" />
+</form>
+<form class="hide" method="post" id="resetPassword_form" asp-area="Identity" asp-page="/Account/InitiateResetPassword">
+</form>
+@section Scripts {
+    @RenderSection("Scripts", required: false)
+    <script type="text/javascript">
+        $(function () {
+            $('#ancrLogout').click(function () {
+                $('#logout_form').submit();
+            });
+            $('#ancrResetPassword').click(function () {
+                $('#resetPassword_form').submit();
+            });
+        });
+    </script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('.collapsible').collapsible();
+        });
+    </script>
+}
+
+@RenderSection("Scripts", required: false)

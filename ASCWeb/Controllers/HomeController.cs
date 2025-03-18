@@ -7,7 +7,7 @@ using ASC.Utilities;
 
 namespace ASCWeb.Controllers
 {
-    public class HomeController : Controller
+    public class HomeController : AnonymousController
     {
         private readonly ILogger<HomeController>? _logger;
 
