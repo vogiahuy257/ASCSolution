@@ -9,6 +9,11 @@
   <ItemGroup>
     <ProjectReference Include="..\ASC.Model\ASC.Model.csproj" />
     <ProjectReference Include="..\ASC.Utilities\ASC.Utilities.csproj" />
+    <!-- <ProjectReference Include="..\ASCWeb\ASCWeb.csproj" /> -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.13" />
   </ItemGroup>
 
 </Project>

@@ -19,36 +19,35 @@ namespace ASCWeb.Web.Services
 
         public async Task SendEmailAsync(string email, string subject, string message)
         {
+            var emailMessage = new MimeMessage();
+
+            emailMessage.From.Add(new MailboxAddress("Admin", _settings.Value.SMTPAccount));
+            emailMessage.To.Add(new MailboxAddress(email, email)); // 👈 Không cần đặt "User"
+            emailMessage.Subject = subject;
+            emailMessage.Body = new TextPart("html") { Text = message }; // 👈 Dùng HTML thay vì plain text
+
+            using var client = new SmtpClient();
             try
             {
-                var emailMessage = new MimeMessage();
-                emailMessage.From.Add(new MailboxAddress("Admin", _settings.Value.SMTPAccount));
-                emailMessage.To.Add(new MailboxAddress("User", email));
-                emailMessage.Subject = subject;
-                emailMessage.Body = new TextPart("plain") { Text = message };
+                await client.ConnectAsync(
+                    _settings.Value.SMTPServer,
+                    _settings.Value.SMTPPort,
+                    SecureSocketOptions.StartTls // 👈 Đảm bảo dùng STARTTLS nếu SMTP yêu cầu
+                );
 
-                using (var client = new SmtpClient())
-                {
-                    // Kết nối đến SMTP server với chế độ bảo mật Auto (STARTTLS hoặc SSL/TLS)
-                    await client.ConnectAsync(_settings.Value.SMTPServer, _settings.Value.SMTPPort, SecureSocketOptions.StartTls);
-
-                    // Xác thực với SMTP server
-                    await client.AuthenticateAsync(_settings.Value.SMTPAccount, _settings.Value.SMTPPassword);
-
-                    // Gửi email
-                    await client.SendAsync(emailMessage);
-
-                    // Ngắt kết nối
-                    await client.DisconnectAsync(true);
-                }
+                await client.AuthenticateAsync(_settings.Value.SMTPAccount, _settings.Value.SMTPPassword);
+                await client.SendAsync(emailMessage);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Lỗi gửi email: {ex.Message}");
+                Console.WriteLine($"❌ Lỗi gửi email: {ex.Message}");
                 throw;
             }
+            finally
+            {
+                await client.DisconnectAsync(true);
+            }
         }
-
         public Task SendSmsAsync(string number, string message)
         {
             throw new NotImplementedException();

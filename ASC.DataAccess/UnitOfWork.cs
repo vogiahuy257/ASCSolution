@@ -1,22 +1,21 @@
 ﻿using ASC.DataAccess.Interfaces;
 using ASC.Model.BaseTypes;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace ASC.DataAccess
 {
     public class UnitOfWork : IUnitOfWork
     {
         private Dictionary<string, object> _repositories;
-        private DbContext _dbContext;
+        private readonly DbContext _dbContext;
+
         public UnitOfWork(DbContext dbContext) 
         {
-            _dbContext = dbContext;
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _repositories = new Dictionary<string, object>();
         }
+
 
         public int CommitTransaction()
         {
@@ -25,13 +24,13 @@ namespace ASC.DataAccess
 
         public void Dispose(bool disposing)
         {
-            if(disposing)
+            if (disposing)
             {
                 _dbContext.Dispose();
             }
         }
 
-        public void Dispose() 
+        public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
@@ -39,13 +38,13 @@ namespace ASC.DataAccess
 
         public IRepository<T> Repository<T>() where T : BaseEntity
         {
-            if(_repositories == null)
-                _repositories = new Dictionary<string, object>();
             var type = typeof(T).Name;
-            if(_repositories.ContainsKey(type)) return (IRepository<T>)_repositories[type];
-            var repositoryType = typeof(Repository<>);
-            var repositoryInstance = Activator.CreateInstance(repositoryType.MakeGenericType(typeof(T)), _dbContext);
-            _repositories.Add(type, repositoryInstance);
+            if (!_repositories.ContainsKey(type))
+            {
+                var repositoryType = typeof(Repository<>);
+                var repositoryInstance = Activator.CreateInstance(repositoryType.MakeGenericType(typeof(T)), _dbContext);
+                _repositories[type] = repositoryInstance!;
+            }
             return (IRepository<T>)_repositories[type];
         }
     }

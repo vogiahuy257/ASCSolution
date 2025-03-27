@@ -9,22 +9,21 @@ namespace ASC.Utilities
 {
     public static class ClaimsPrincipalExtensions
     {
-        public static CurrentUser GetCurrentUserDetails(this ClaimsPrincipal principal)
+        public static CurrentUser? GetCurrentUserDetails(this ClaimsPrincipal principal)
         {
-            if (!principal.Claims.Any())
+            if (principal == null || !principal.Claims.Any())
                 return null;
 
             return new CurrentUser
             {
-                Name = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value,
-                Email = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value,
+                Name = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value ?? "Unknown", // ✅ Tránh null
+                Email = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value ?? string.Empty, // ✅ Tránh null
                 Roles = principal.Claims.Where(c => c.Type == ClaimTypes.Role)
                                         .Select(c => c.Value)
-                                        .ToArray(),
-                IsActive = bool.Parse(principal.Claims
-                                               .Where(c => c.Type == "IsActive")
-                                               .Select(c => c.Value)
-                                               .SingleOrDefault() ?? "false")
+                                        .ToArray() ?? Array.Empty<string>(), // ✅ Tránh null
+                IsActive = bool.TryParse(
+                    principal.Claims.FirstOrDefault(c => c.Type == "IsActive")?.Value, 
+                    out bool isActive) && isActive // ✅ Xử lý an toàn cho `bool`
             };
         }
     }

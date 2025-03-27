@@ -10,19 +10,14 @@ namespace ASCWeb.Controllers
     public class HomeController : AnonymousController
     {
         private readonly ILogger<HomeController>? _logger;
+        private readonly IOptions<ApplicationSettings> _settings;
 
-        private IOptions<ApplicationSettings> _settings;
-
-        public HomeController(IOptions<ApplicationSettings> settings)
+        public HomeController(IOptions<ApplicationSettings> settings, ILogger<HomeController>? logger = null)
         {
-            _settings = settings;
-        }
-
-        public HomeController(ILogger<HomeController> logger,IOptions<ApplicationSettings> settings)
-        {
+            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
             _logger = logger;
-            _settings = settings;
         }
+
         public IActionResult Index()
         {
             // Set Session
@@ -36,7 +31,6 @@ namespace ASCWeb.Controllers
 
             return View();
         }
-
 
         public IActionResult Privacy()
         {

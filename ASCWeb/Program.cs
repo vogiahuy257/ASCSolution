@@ -2,12 +2,12 @@ using ASC.DataAccess;
 using ASC.DataAccess.Interfaces;
 using ASCWeb.Configuration;
 using ASCWeb.Data;
-using ASCWeb.Services;
 using ASCWeb.Solution.Services;
 using ASCWeb.Web.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,10 +17,11 @@ builder.Services.Configure<ApplicationSettings>(builder.Configuration.GetSection
 // 🔹 Kết nối database
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// cấu hình Identity
+// 🔹 Cấu hình Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.SignIn.RequireConfirmedAccount = true;
@@ -29,17 +30,18 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// 🔹 Thêm session & cache
-builder.Services.AddSession();
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-
 // 🔹 Đăng ký các dịch vụ ứng dụng
+builder.Services.AddScoped<DbContext, ApplicationDbContext>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddTransient<IEmailSender, AuthMessageSender>();
 builder.Services.AddTransient<ISmsSender, AuthMessageSender>();
 builder.Services.AddSingleton<IIdentitySeed, IdentitySeed>();
 builder.Services.AddSingleton<INavigationCacheOperations, NavigationCacheOperations>();
+
+// 🔹 Thêm session & cache
+builder.Services.AddSession();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 // 🔹 Cấu hình MVC & Razor Pages
 builder.Services.AddControllersWithViews();
@@ -64,7 +66,7 @@ app.UseSession();
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-app.UseAuthentication();  // ✅ Đảm bảo Authentication hoạt động
+app.UseAuthentication();
 app.UseAuthorization();
 
 // 🔹 Cấu hình route
@@ -81,12 +83,14 @@ app.MapRazorPages();
 // 🔹 Chạy seed dữ liệu ban đầu (Identity)
 using (var scope = app.Services.CreateScope())
 {
-    var storageSeed = scope.ServiceProvider.GetRequiredService<IIdentitySeed>();
-    await storageSeed.Seed(
-        scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>(),
-        scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>(),
-        scope.ServiceProvider.GetRequiredService<IOptions<ApplicationSettings>>()
-    );
+    var serviceProvider = scope.ServiceProvider;
+    var identitySeed = serviceProvider.GetRequiredService<IIdentitySeed>();
+
+    var userManager = serviceProvider.GetRequiredService<UserManager<IdentityUser>>();
+    var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var appSettings = serviceProvider.GetRequiredService<IOptions<ApplicationSettings>>();
+
+    await identitySeed.Seed(userManager, roleManager, appSettings);
 }
 
 // 🔹 Tạo cache menu
@@ -97,4 +101,4 @@ using (var scope = app.Services.CreateScope())
 }
 
 // 🔹 Chạy ứng dụng
-app.Run();
+await app.RunAsync();
